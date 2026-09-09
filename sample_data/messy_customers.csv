@@ -1,0 +1,6 @@
+customer_id,email,age,state
+1001,alex@example.com,34,AZ
+1002,,29,CA
+1002,bad-email,140,CA
+1004,casey@example.com,,ZZ
+1005,alex@example.com,34,AZ

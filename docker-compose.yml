@@ -1,0 +1,16 @@
+services:
+  api:
+    build:
+      context: ./backend
+    environment:
+      DATATRUST_CORS_ORIGINS: http://localhost:5173
+    ports:
+      - "8000:8000"
+  web:
+    build:
+      context: ./frontend
+    depends_on:
+      - api
+    ports:
+      - "5173:80"
+

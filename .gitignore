@@ -1,0 +1,13 @@
+.DS_Store
+DataTrust_Workbench_Codex_Implementation_Spec.pdf
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+coverage.xml
+backend/.coverage
+frontend/node_modules/
+frontend/dist/
