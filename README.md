@@ -6,7 +6,7 @@ It is an independent learning portfolio project exploring the data-integrity pro
 
 ## Current scope
 
-M0-M3 are implemented: a FastAPI/Pydantic v2 backend, a restrained React/TypeScript shell, CSV and JSON upload, bounded file and row limits, schema inference, deterministic profiling, typed data-quality rules, approval states, deterministic row-level execution, transparent quality scoring, and JSON reports. Live LLM support, persistent storage, and MCP are intentionally deferred to later milestones.
+M0-M4 are implemented: a FastAPI/Pydantic v2 backend, a restrained React/TypeScript shell, CSV and JSON upload, bounded file and row limits, schema inference, deterministic profiling, typed data-quality rules, approval states, deterministic row-level execution, transparent quality scoring, JSON reports, and validated AI-style rule suggestions through a deterministic demo provider. Live LLM support, persistent storage, and MCP are intentionally deferred to later milestones.
 
 ### Included
 
@@ -18,6 +18,7 @@ M0-M3 are implemented: a FastAPI/Pydantic v2 backend, a restrained React/TypeScr
 - Semantic validation for unknown columns, incompatible types, and duplicate equivalent rules
 - Explicit proposed/approved/rejected/disabled lifecycle with an audit event for each transition
 - Quality reports with row-level evidence, N/A-aware dimension metrics, and JSON export
+- AI-style candidate suggestions from a bounded fake provider; all candidates require Pydantic validation, semantic validation, and explicit approval
 - Consistent error envelope with request IDs
 - Unit and API integration tests
 
@@ -74,6 +75,7 @@ Run the API in one terminal with `make backend` and the web client in another wi
 | GET | `/api/v1/datasets/{id}` | Dataset metadata |
 | GET | `/api/v1/datasets/{id}/profile` | Deterministic profile |
 | POST | `/api/v1/datasets/{id}/rules` | Create a proposed human-authored typed rule |
+| POST | `/api/v1/datasets/{id}/rules/suggest` | Generate validated, proposed AI-style candidates |
 | GET | `/api/v1/datasets/{id}/rules` | List rules, optionally filtered by status/source |
 | PATCH | `/api/v1/rules/{id}` | Approve, reject, or disable a rule |
 | POST | `/api/v1/datasets/{id}/evaluate` | Execute approved rules and create a quality report |
@@ -97,7 +99,7 @@ Errors use a stable envelope such as:
 
 The quality score is a transparent portfolio metric, not a universal industry standard. It weights completeness (35%), validity (30%), uniqueness (20%), and consistency (15%). Completeness comes from `required` checks; uniqueness from `unique`; consistency from `allowed_values`; and validity from the remaining format and range checks. A dimension with no values checked is shown as N/A (`null`) and its weight is re-normalized across applicable dimensions - it is never silently counted as perfect.
 
-AI suggestions are also deferred. [ADR-002](docs/ADR-002-ai-validation-boundary.md) records the non-negotiable boundary: a future provider can suggest structured candidate rules, but Pydantic and semantic validation must accept them before human approval, and only the deterministic engine will execute approved rules.
+The default demo provider makes deterministic suggestions from compact schema/profile metadata only; it does not send rows anywhere. Its untrusted structured response passes through one Pydantic discriminated-union path and semantic validation before candidates are persisted. Candidates start as `proposed`, require explicit human approval, and only then are eligible for deterministic execution. Invalid output, duplicate suggestions, and provider timeouts are rejected and never reach execution. [ADR-002](docs/ADR-002-ai-validation-boundary.md) records this boundary.
 
 ## Checks
 
@@ -109,7 +111,7 @@ cd frontend && npm run build
 docker compose build
 ```
 
-The GitHub Actions workflow runs these checks on pushes and pull requests. Later milestones will add fake and optional live LLM adapters, the browser workflow UI, SQLite persistence, and finally MCP tools that reuse the service layer.
+The GitHub Actions workflow runs these checks on pushes and pull requests. Later milestones will add an optional live LLM adapter, the browser workflow UI, SQLite persistence, and finally MCP tools that reuse the service layer.
 
 ## Why I built this
 

@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     max_upload_size_bytes: int = Field(default=5 * 1024 * 1024, gt=0)
     max_rows: int = Field(default=100_000, gt=0)
+    rule_generator_timeout_seconds: float = Field(default=3.0, gt=0, le=30)
     cors_origins: str = "http://localhost:5173"
 
     @property

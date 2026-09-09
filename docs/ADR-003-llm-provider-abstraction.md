@@ -6,8 +6,8 @@ Accepted - 2026-09-09
 
 ## Decision
 
-The later AI milestone will define a `RuleGenerator` protocol and offer a fake implementation as its default. An optional OpenAI-compatible adapter will be selected through environment configuration, not from application business logic.
+M4 defines a `RuleGenerator` protocol and provides `FakeRuleGenerator` as the default. It receives only a dataset profile and produces deterministic, untrusted structured candidate data. An optional future OpenAI-compatible adapter will be selected through environment configuration, not from application business logic.
 
 ## Consequences
 
-Provider failures and malformed structured responses can be tested deterministically. No live model call is required in CI or in the basic demo flow.
+Provider failures and malformed structured responses are tested deterministically. One service-layer Pydantic and semantic-validation path must reject bad candidates before persistence; no live model call is required in CI or in the basic demo flow.

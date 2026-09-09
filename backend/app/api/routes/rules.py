@@ -28,6 +28,14 @@ def list_rules(
     return service.list_rules(dataset_id, status_filter, source)
 
 
+@dataset_router.post("/suggest", response_model=list[RuleRecord])
+async def suggest_rules(
+    dataset_id: str,
+    service: RuleService = Depends(get_rule_service),
+) -> list[RuleRecord]:
+    return await service.suggest_rules(dataset_id)
+
+
 @rule_router.patch("/{rule_id}", response_model=RuleRecord)
 def update_rule(
     rule_id: str,

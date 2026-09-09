@@ -1,0 +1,12 @@
+[
+  {"name": "email_with_nulls", "expected_categories": ["required", "email"]},
+  {"name": "age_outliers", "expected_categories": ["range"]},
+  {"name": "us_state_codes", "expected_categories": ["pattern"]},
+  {"name": "unique_customer_identifier", "expected_categories": ["unique"]},
+  {"name": "nullable_order_total", "expected_categories": ["required"]},
+  {"name": "plain_text_notes", "expected_categories": []},
+  {"name": "empty_column", "expected_categories": ["required"]},
+  {"name": "numeric_measurement", "expected_categories": []},
+  {"name": "alternate_email_name", "expected_categories": ["email"]},
+  {"name": "non_unique_identifier", "expected_categories": []}
+]

@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from app.adapters.llm.fake import FakeRuleGenerator
 from app.adapters.repositories.memory import InMemoryDatasetRepository
 from app.api.routes import datasets, health, reports, rules
 from app.core.config import get_settings
@@ -63,7 +64,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.settings = settings
     repository = InMemoryDatasetRepository()
     app.state.dataset_service = DatasetService(repository, DatasetProfiler(), settings)
-    app.state.rule_service = RuleService(repository, RuleSemanticValidator())
+    app.state.rule_service = RuleService(
+        repository,
+        RuleSemanticValidator(),
+        FakeRuleGenerator(),
+        settings.rule_generator_timeout_seconds,
+    )
     app.state.report_service = ReportService(repository, DeterministicRuleEngine(), QualityScorer())
     yield
 

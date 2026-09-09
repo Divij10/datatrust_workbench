@@ -1,13 +1,19 @@
+import asyncio
 from datetime import UTC, datetime
 from uuid import uuid4
 
+from pydantic import ValidationError
+
+from app.adapters.llm.base import RuleGenerator
 from app.adapters.repositories.memory import InMemoryDatasetRepository
 from app.core.errors import DomainError
+from app.domain.dataset import DatasetProfile
 from app.domain.enums import RuleSource, RuleStatus
 from app.domain.rules import (
     Rule,
     RuleAuditEvent,
     RuleRecord,
+    RuleSuggestionBatch,
     UpdateRuleRequest,
 )
 from app.services.rule_validator import RuleSemanticValidator
@@ -20,9 +26,13 @@ class RuleService:
         self,
         repository: InMemoryDatasetRepository,
         validator: RuleSemanticValidator,
+        generator: RuleGenerator,
+        generator_timeout_seconds: float,
     ) -> None:
         self._repository = repository
         self._validator = validator
+        self._generator = generator
+        self._generator_timeout_seconds = generator_timeout_seconds
 
     def create_human_rule(self, dataset_id: str, rule: Rule) -> RuleRecord:
         dataset = self._repository.get(dataset_id)
@@ -63,6 +73,69 @@ class RuleService:
             if (status is None or record.status == status)
             and (source is None or record.source == source)
         ]
+
+    async def suggest_rules(self, dataset_id: str) -> list[RuleRecord]:
+        dataset = self._repository.get(dataset_id)
+        raw_response = await self._generate(dataset.detail.profile)
+        try:
+            batch = RuleSuggestionBatch.model_validate(raw_response)
+        except ValidationError as error:
+            raise DomainError(
+                "LLM_OUTPUT_VALIDATION_FAILED",
+                "The rule provider returned an invalid structured response.",
+                400,
+                {"errors": error.errors()},
+            ) from error
+
+        existing = self._repository.list_rules(dataset_id)
+        candidates: list[RuleRecord] = []
+        now = datetime.now(UTC)
+        for rule in batch.rules:
+            self._validator.validate(
+                rule,
+                dataset.detail.profile,
+                [*existing, *candidates],
+            )
+            candidate = RuleRecord(
+                id=str(uuid4()),
+                dataset_id=dataset_id,
+                status=RuleStatus.PROPOSED,
+                source=RuleSource.AI,
+                created_at=now,
+                rule=rule,
+                audit_events=[
+                    RuleAuditEvent(
+                        occurred_at=now,
+                        from_status=None,
+                        to_status=RuleStatus.PROPOSED,
+                        source=RuleSource.AI,
+                        rationale=batch.explanation,
+                    )
+                ],
+            )
+            candidates.append(candidate)
+        for candidate in candidates:
+            self._repository.add_rule(candidate)
+        return candidates
+
+    async def _generate(self, profile: DatasetProfile) -> object:
+        try:
+            return await asyncio.wait_for(
+                self._generator.generate_rules(profile),
+                timeout=self._generator_timeout_seconds,
+            )
+        except TimeoutError as error:
+            raise DomainError(
+                "LLM_PROVIDER_UNAVAILABLE",
+                "The rule provider timed out. Please try again later.",
+                503,
+            ) from error
+        except Exception as error:
+            raise DomainError(
+                "LLM_PROVIDER_UNAVAILABLE",
+                "The rule provider is temporarily unavailable.",
+                503,
+            ) from error
 
     def update_rule(self, rule_id: str, update: UpdateRuleRequest) -> RuleRecord:
         record = self._repository.get_rule(rule_id)

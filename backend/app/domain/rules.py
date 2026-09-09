@@ -126,6 +126,15 @@ class UpdateRuleRequest(BaseModel):
     rationale: str | None = Field(default=None, max_length=240)
 
 
+class RuleSuggestionBatch(BaseModel):
+    """Validated provider output. The provider itself only returns untrusted dictionaries."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    rules: list[Rule] = Field(max_length=12)
+    explanation: str = Field(min_length=1, max_length=240)
+
+
 class RuleViolation(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
