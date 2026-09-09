@@ -6,7 +6,7 @@ It is an independent learning portfolio project exploring the data-integrity pro
 
 ## Current scope
 
-The core application is implemented: a FastAPI/Pydantic v2 backend and a restrained React/TypeScript workspace for CSV and JSON upload, profiling, typed data-quality rules, approval decisions, deterministic row-level execution, transparent quality scoring, JSON reports, and validated AI-style rule suggestions through a deterministic demo provider. Live LLM support, persistent storage, and MCP are intentionally deferred to a later stretch increment.
+The core application is implemented: a FastAPI/Pydantic v2 backend and a restrained React/TypeScript workspace for CSV and JSON upload, profiling, typed data-quality rules, approval decisions, deterministic row-level execution, transparent quality scoring, JSON reports, and validated AI-style rule suggestions through a deterministic demo provider. A local MCP endpoint exposes the same service layer for agent clients. Live LLM support and persistent storage remain future work.
 
 ### Included
 
@@ -19,6 +19,7 @@ The core application is implemented: a FastAPI/Pydantic v2 backend and a restrai
 - Explicit proposed/approved/rejected/disabled lifecycle with an audit event for each transition
 - Quality reports with row-level evidence, N/A-aware dimension metrics, and JSON export
 - AI-style candidate suggestions from a bounded fake provider; all candidates require Pydantic validation, semantic validation, and explicit approval
+- Streamable HTTP MCP tools for dataset profiles, reports, candidate-record validation, suggestions, and rule listing
 - Consistent error envelope with request IDs
 - Unit and API integration tests
 
@@ -27,7 +28,7 @@ The core application is implemented: a FastAPI/Pydantic v2 backend and a restrai
 - No generic chatbot or LLM call
 - No automatic source-data modification
 - No arbitrary code, SQL, or expression execution
-- No authentication, cloud deployment, durable persistence, or MCP server
+- No authentication, cloud deployment, durable persistence, or live LLM provider
 
 ## Architecture
 
@@ -42,6 +43,9 @@ FastAPI routes -> DatasetService -> DatasetProfiler -> pandas
                        |
                        v
             in-memory repository boundary (M1-M2)
+       ^
+       |
+MCP tools (same service instances; mounted at /mcp)
 ```
 
 Routes contain transport concerns only. Services validate and coordinate work; the profiler and rule engine remain deterministic. The M1-M2 repository is intentionally in-memory because durable records belong with the reporting/audit infrastructure in a later milestone. See [the fuller architecture note](docs/architecture.md).
@@ -119,7 +123,13 @@ cd frontend && npm run build
 docker compose build
 ```
 
-The GitHub Actions workflow runs these checks on pushes and pull requests. Future stretch work may add an optional live LLM adapter, SQLite persistence, and MCP tools that reuse the service layer.
+The GitHub Actions workflow runs these checks on pushes and pull requests. Future work may add an optional live LLM adapter and SQLite persistence.
+
+## MCP tools
+
+The app mounts a Streamable HTTP MCP server at `http://localhost:8000/mcp`. It is intentionally local-only and shares the running API's in-memory service instances, so an MCP client can only access data uploaded to that same running process. The available tools are `profile_dataset`, `get_quality_report`, `validate_record`, `suggest_quality_rules`, and `list_rules`.
+
+`validate_record` evaluates a candidate object only against approved rules. For uniqueness checks it compares the candidate to existing dataset values; it never writes the candidate into the dataset. As with the browser workflow, suggested rules remain proposed until a human explicitly approves them.
 
 ## Why I built this
 

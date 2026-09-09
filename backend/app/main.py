@@ -17,6 +17,7 @@ from app.core.config import get_settings
 from app.core.errors import DomainError
 from app.core.logging import configure_logging
 from app.domain.dataset import ErrorBody, ErrorResponse
+from app.mcp.server import WorkbenchServiceRegistry, WorkbenchServices, create_mcp_server
 from app.services.dataset_service import DatasetService
 from app.services.profiler import DatasetProfiler
 from app.services.quality_scorer import QualityScorer
@@ -71,11 +72,21 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         settings.rule_generator_timeout_seconds,
     )
     app.state.report_service = ReportService(repository, DeterministicRuleEngine(), QualityScorer())
-    yield
+    app.state.mcp_registry.configure(
+        WorkbenchServices(
+            datasets=app.state.dataset_service,
+            rules=app.state.rule_service,
+            reports=app.state.report_service,
+        )
+    )
+    async with app.state.mcp.session_manager.run():
+        yield
 
 
 def create_app() -> FastAPI:
     app = FastAPI(title="DataTrust Workbench", version="0.1.0", lifespan=lifespan)
+    app.state.mcp_registry = WorkbenchServiceRegistry()
+    app.state.mcp, mcp_app = create_mcp_server(app.state.mcp_registry)
     settings = get_settings()
     app.add_middleware(RequestIdMiddleware)
     app.add_middleware(
@@ -91,6 +102,7 @@ def create_app() -> FastAPI:
     app.include_router(rules.rule_router)
     app.include_router(reports.evaluation_router)
     app.include_router(reports.report_router)
+    app.mount("/mcp", mcp_app)
 
     @app.exception_handler(DomainError)
     async def handle_domain_error(request: Request, error: DomainError) -> JSONResponse:

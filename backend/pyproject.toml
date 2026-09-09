@@ -9,6 +9,7 @@ description = "Deterministic data quality workbench API"
 requires-python = ">=3.12"
 dependencies = [
   "fastapi>=0.115,<1.0",
+  "mcp>=2.0,<3.0",
   "pandas>=2.2,<3.0",
   "pydantic-settings>=2.6,<3.0",
   "python-multipart>=0.0.18,<1.0",
