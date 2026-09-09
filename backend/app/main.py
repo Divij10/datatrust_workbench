@@ -2,13 +2,16 @@ import logging
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 from app.adapters.llm.fake import FakeRuleGenerator
 from app.adapters.repositories.memory import InMemoryDatasetRepository
@@ -58,6 +61,26 @@ def error_response(
     return JSONResponse(status_code=status_code, content=payload.model_dump())
 
 
+def mount_frontend(app: FastAPI, static_dir: Path | None) -> None:
+    """Serve the compiled SPA when the application is deployed as one container."""
+    if static_dir is None or not (static_dir / "index.html").is_file():
+        return
+
+    resolved_static_dir = static_dir.resolve()
+    assets_dir = resolved_static_dir / "assets"
+    if assets_dir.is_dir():
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="frontend-assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_frontend(full_path: str) -> Response:
+        requested_file = (resolved_static_dir / full_path).resolve()
+        if requested_file.is_relative_to(resolved_static_dir) and requested_file.is_file():
+            return FileResponse(requested_file)
+        if full_path.startswith(("api/", "mcp")):
+            return JSONResponse(status_code=404, content={"detail": "Not Found"})
+        return FileResponse(resolved_static_dir / "index.html")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
@@ -103,6 +126,7 @@ def create_app() -> FastAPI:
     app.include_router(reports.evaluation_router)
     app.include_router(reports.report_router)
     app.mount("/mcp", mcp_app)
+    mount_frontend(app, settings.static_dir)
 
     @app.exception_handler(DomainError)
     async def handle_domain_error(request: Request, error: DomainError) -> JSONResponse:

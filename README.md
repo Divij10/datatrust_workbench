@@ -61,6 +61,16 @@ docker compose up --build
 
 Open `http://localhost:5173` for the workspace and `http://localhost:8000/docs` for the API. The service uses no LLM key and no external model call in this scope. The local repository is in-memory, so restarting the API clears uploaded datasets, rules, and reports.
 
+## One-service Render deployment
+
+The root `Dockerfile` packages the compiled React workspace and FastAPI API into one service. The frontend calls the API on the same origin, so no public API URL or cross-origin configuration is needed.
+
+1. Create a Render account and choose **New → Blueprint**.
+2. Connect `Divij10/datatrust_workbench` and approve the detected `render.yaml`.
+3. Deploy. Render builds the root `Dockerfile`, checks `/health`, and provides one public URL for both the workspace and API.
+
+Every push to `main` redeploys the service. The included free plan is suitable for demos; it may sleep when idle. Uploads, rules, audit events, and reports are still in-memory and are therefore cleared when the deployed service restarts.
+
 For local development, create a virtual environment, install the backend extras, and install frontend packages:
 
 ```bash

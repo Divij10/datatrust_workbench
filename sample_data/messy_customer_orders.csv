@@ -1,0 +1,19 @@
+customer_id,full_name,email,age,state,postal_code,order_id,order_date,order_total,account_status
+C-1001,Avery Collins,avery.collins@example.com,34,AZ,85001,ORD-0001,2026-08-01,125.50,active
+C-1002,Jordan Lee,,29,CA,94105,ORD-0002,2026-08-02,89.99,active
+C-1003,Morgan Patel,morgan.patel@,41,California,94105,ORD-0003,08/03/2026,210.00,Active
+C-1004,Casey Brown,casey.brown@example.com,150,TX,73301,ORD-0004,2026-08-04,45.25,active
+C-1005,Riley Kim,riley.kim@example.com,-4,NY,10001,ORD-0005,2026-08-05,0.00,inactive
+C-1006,Sam Rivera,sam.rivera@example.com,38,ZZ,02108,ORD-0006,2026-08-06,78.10,active
+C-1002,Jordan Lee,jordan.lee@example.com,29,CA,94105,ORD-0002,2026-08-02,89.99,active
+C-1007,,taylor.owens@example.com,52,FL,33101,ORD-0007,2026-08-07,130.75,active
+C-1008,Jamie Nguyen,jamie.nguyen@example.com,31,ca,94107,ORD-0008,2026-08-08,99.95,pending
+C-1009,Alex Smith,alex.smith@example.com,44,WA,98A01,ORD-0009,2026-08-09,250.00,active
+C-1010,Chris Johnson,chris.johnson@example.com,,OR,97201,ORD-0010,2026-08-10,64.50,active
+C-1011,  Dana Moore  ,dana.moore@example.com,27,  TX  ,78701,ORD-0011,2026-08-11,115.00,ACTIVE
+C-1012,Robin Chen,robin.chen@example.com,120,IL,60601,ORD-0012,2026-08-12,unknown,inactive
+C-1013,Quinn Davis,quinn.davis@sample,36,CO,80202,ORD-0013,2026-13-01,175.40,active
+C-1014,Harper Wilson,harper.wilson@example.com,22,NV,8910,ORD-0014,2026-08-14,-20.00,active
+C-1015,Blake Martin,blake.martin@example.com,47,MA,02108,ORD-0015,2026-08-15,310.25,active
+C-1016,Devon Taylor,devon.taylor@example.com,47,MA,02108,ORD-0015,2026-08-15,310.25,active
+C-1017,Emery Brooks,emery.brooks@example.com,33,PA,19103,ORD-0017,2026-08-16, 42.00 ,suspended

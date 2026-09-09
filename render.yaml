@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: datatrust-workbench
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: DATATRUST_ENVIRONMENT
+        value: production
+      - key: DATATRUST_CORS_ORIGINS
+        value: ""

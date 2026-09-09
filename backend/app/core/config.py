@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -15,6 +16,7 @@ class Settings(BaseSettings):
     max_rows: int = Field(default=100_000, gt=0)
     rule_generator_timeout_seconds: float = Field(default=3.0, gt=0, le=30)
     cors_origins: str = "http://localhost:5173"
+    static_dir: Path | None = None
 
     @property
     def cors_origin_list(self) -> list[str]:
