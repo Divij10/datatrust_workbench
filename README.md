@@ -6,7 +6,7 @@ It is an independent learning portfolio project exploring the data-integrity pro
 
 ## Current scope
 
-M0-M4 are implemented: a FastAPI/Pydantic v2 backend, a restrained React/TypeScript shell, CSV and JSON upload, bounded file and row limits, schema inference, deterministic profiling, typed data-quality rules, approval states, deterministic row-level execution, transparent quality scoring, JSON reports, and validated AI-style rule suggestions through a deterministic demo provider. Live LLM support, persistent storage, and MCP are intentionally deferred to later milestones.
+The core application is implemented: a FastAPI/Pydantic v2 backend and a restrained React/TypeScript workspace for CSV and JSON upload, profiling, typed data-quality rules, approval decisions, deterministic row-level execution, transparent quality scoring, JSON reports, and validated AI-style rule suggestions through a deterministic demo provider. Live LLM support, persistent storage, and MCP are intentionally deferred to a later stretch increment.
 
 ### Included
 
@@ -27,12 +27,12 @@ M0-M4 are implemented: a FastAPI/Pydantic v2 backend, a restrained React/TypeScr
 - No generic chatbot or LLM call
 - No automatic source-data modification
 - No arbitrary code, SQL, or expression execution
-- No authentication, cloud deployment, or MCP server
+- No authentication, cloud deployment, durable persistence, or MCP server
 
 ## Architecture
 
 ```text
-React + TypeScript shell
+React + TypeScript workspace
         |
         v
 FastAPI routes -> DatasetService -> DatasetProfiler -> pandas
@@ -55,7 +55,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Open `http://localhost:5173` for the shell and `http://localhost:8000/docs` for the API. The service uses no LLM key and no external model call in this scope.
+Open `http://localhost:5173` for the workspace and `http://localhost:8000/docs` for the API. The service uses no LLM key and no external model call in this scope. The local repository is in-memory, so restarting the API clears uploaded datasets, rules, and reports.
 
 For local development, create a virtual environment, install the backend extras, and install frontend packages:
 
@@ -64,7 +64,15 @@ cd backend && python -m pip install -e ".[dev]"
 cd ../frontend && npm install
 ```
 
-Run the API in one terminal with `make backend` and the web client in another with `make frontend`. Upload [messy_customers.csv](sample_data/messy_customers.csv) from the API docs or with `make demo`.
+Run the API in one terminal with `make backend` and the web client in another with `make frontend`. Upload [messy_customers.csv](sample_data/messy_customers.csv) from the browser workspace or with `make demo`.
+
+### Browser workflow
+
+1. Upload `sample_data/messy_customers.csv` from the workspace.
+2. Inspect the profile table for the inferred schema and null/duplicate summaries.
+3. Select **Request suggestions**. The fake provider returns proposed rules only; it never receives row data or makes a network request.
+4. Approve or reject each suggestion. The audit trail records both the source and transition.
+5. Select **Run approved rules** to create a deterministic report with dimension scores and row-level evidence.
 
 ## API
 
@@ -111,7 +119,7 @@ cd frontend && npm run build
 docker compose build
 ```
 
-The GitHub Actions workflow runs these checks on pushes and pull requests. Later milestones will add an optional live LLM adapter, the browser workflow UI, SQLite persistence, and finally MCP tools that reuse the service layer.
+The GitHub Actions workflow runs these checks on pushes and pull requests. Future stretch work may add an optional live LLM adapter, SQLite persistence, and MCP tools that reuse the service layer.
 
 ## Why I built this
 
